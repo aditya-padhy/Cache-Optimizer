@@ -1,4 +1,5 @@
 #include "CacheOptimizer.h"
+#include <unordered_set>
 
 CacheOptimizer::CacheOptimizer(int cap, int patternInterval, int adaptiveThreshold) 
     : capacity(cap), hits(0), misses(0), evictions(0), writebacks(0),
@@ -108,16 +109,19 @@ void CacheOptimizer::evict() {
 
 void CacheOptimizer::analyzeAccessPatterns() {
     std::cout << "Analyzing access patterns..." << std::endl;
-    // Analyze access patterns and predict the next likely file to be accessed
-    for (const auto& entry : accessPatterns) {
-        const std::string& currentFile = entry.first;
-        const std::vector<std::string>& nextFiles = entry.second;
 
-        // Update access patterns: if file A is followed by file B multiple times, add B as the next likely access for A
-        if (nextFiles.size() > 1) {
-            for (size_t i = 0; i < nextFiles.size() - 1; ++i) {
-                accessPatterns[currentFile].push_back(nextFiles[i + 1]);
-            }
+    for (auto& entry : accessPatterns) {
+        const std::string& currentFile = entry.first;
+        std::vector<std::string>& nextFiles = entry.second;
+
+        // Use a set to eliminate duplicates and track relationships
+        std::unordered_set<std::string> uniqueNextFiles(nextFiles.begin(), nextFiles.end());
+        nextFiles.assign(uniqueNextFiles.begin(), uniqueNextFiles.end());
+
+        // Limit the size of nextFiles to prevent memory issues
+        const size_t maxPatternSize = 5;
+        if (nextFiles.size() > maxPatternSize) {
+            nextFiles.resize(maxPatternSize);
         }
     }
 }
@@ -155,7 +159,7 @@ void CacheOptimizer::displayMainMemory() const {
 // #include <cstdlib>
 // #include <algorithm>
 // #include <random>
-// #include "CacheOptimizer.h"
+// //#include "CacheOptimizer.h"
 
 // // Function to simulate a delay using a busy-wait loop
 // void simulateDelay(int milliseconds) {
@@ -166,36 +170,36 @@ void CacheOptimizer::displayMainMemory() const {
 // }
 
 // int main() {
-//      // Set up a CacheOptimizer with:
-//     // capacity = 2, pattern analysis every 5 seconds, adaptive cache threshold of 5
-//     CacheOptimizer cache(2, 5, 5);
+//     // Initialize a CacheOptimizer with small capacity and short analysis intervals
+//     CacheOptimizer cache(3, 1, 5);
 
-//     // Simulate a random sequence of file accesses
-//     std::vector<std::string> fileSequence = {"file1", "file2", "file3", "file1", "file4", "file2", "file3", "file4", "file5"};
+//     // File access sequence with repeated patterns for testing proactive caching
+//     std::vector<std::string> fileSequence = {
+//         "file1", "file2", "file3", "file1", "file4", "file5",
+//         "file2", "file3", "file1", "file4", "file5", "file3"
+//     };
 
-//     // Randomize the access order using std::shuffle (requires a random engine)
-//     std::random_device rd;
-//     std::mt19937 g(rd());  // Mersenne Twister random number generator
-//     std::shuffle(fileSequence.begin(), fileSequence.end(), g);
+//     // Access files in sequence
+//     for (size_t i = 0; i < fileSequence.size(); ++i) {
+//         const std::string& file = fileSequence[i];
 
-//     // Access each file in a randomized sequence
-//     for (const std::string& file : fileSequence) {
-//         // Simulate file write for some files (file1 and file3 in this case)
-//         bool write = (file == "file1" || file == "file3");  // Files to be written to
-//         std::string newContent = (write ? "Updated " + file + " content" : "");
+//         // Simulate write for specific files to test dirty-bit functionality
+//         bool write = (file == "file1" || file == "file3");
+//         std::string newContent = write ? "Updated content of " + file : "";
 
-//         std::cout << "\nAccessing: " << file << std::endl;
-//         // Access the file (write if needed)
+//         std::cout << "\nAccessing: " << file << (write ? " (write operation)" : "") << std::endl;
+
+//         // Access the file
 //         cache.accessFile(file, newContent, write);
 
-//         // Simulate a delay of 500ms between file accesses
-//         simulateDelay(500);
+//         // Simulate delay between accesses
+//         simulateDelay(500); // 500ms delay
 //     }
 
-//     // Display the cache performance metrics
+//     // Print cache performance metrics
 //     cache.printMetrics();
 
-//     // Display the contents of main memory to verify write-backs
+//     // Display main memory contents to verify writebacks
 //     cache.displayMainMemory();
 
 //     return 0;
