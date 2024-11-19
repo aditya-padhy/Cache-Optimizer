@@ -22,6 +22,8 @@ public:
         if (cacheMap.find(filename) != cacheMap.end()) {
             cacheEntries[cacheMap[filename]].used = true;
             hits++;
+            cout << "Accessed: " << filename << " (Cache Hit)\n";
+            displayCache(); // Display cache contents after each access
             return cacheEntries[cacheMap[filename]].data;
         }
         misses++;
@@ -32,15 +34,17 @@ public:
         } else {
             evictAndInsert(filename, data);
         }
+        cout << "Accessed: " << filename << " (Cache Miss)\n";
+        displayCache(); // Display cache contents after each access
         return data;
     }
 
     void displayCache() const {
-        cout << "Cache Contents:\n";
-        for(const auto &entry : cacheEntries){
+        cout << "Cache Contents: ";
+        for (const auto& entry : cacheEntries) {
             cout << entry.filename << " ";
         }
-        cout << "\n";
+        cout << "\n"<<endl;
     }
 
     void displayMetrics() const {
@@ -61,9 +65,9 @@ private:
     int misses;
     int totalAccesses = 0;
 
-    void evictAndInsert(const string& filename, const string& data){
-        while(true){
-            if(!cacheEntries[pointer].used){
+    void evictAndInsert(const string& filename, const string& data) {
+        while (true) {
+            if (!cacheEntries[pointer].used) {
                 cacheMap.erase(cacheEntries[pointer].filename);
                 cacheEntries[pointer] = {filename, data, true};
                 cacheMap[filename] = pointer;
@@ -75,25 +79,25 @@ private:
         }
     }
 
-    string generateData(const string& filename){
+    string generateData(const string& filename) {
         return "Simulated data for " + filename;
     }
 };
 
-int main(){
+int main() {
     // Setup
     ClockCache cache(5);
-    vector<string> filenames = {"file1.txt", "file2.txt", "file3.txt", "file4.txt", "file5.txt", "file6.txt", "file7.txt","file8.txt","file8.txt","file9.txt","file10.txt"};
+    vector<string> filenames = {"file1.txt", "file2.txt", "file3.txt", "file4.txt", "file5.txt", "file6.txt", "file7.txt", "file8.txt", "file9.txt", "file10.txt"};
     
     // Random access simulation
     random_device rd;
     mt19937 gen(rd());
-    uniform_int_distribution<> dis(0, static_cast<int>(filenames.size()) -1);
-    int simulationRuns = 100;
+    uniform_int_distribution<> dis(0, static_cast<int>(filenames.size()) - 1);
+    int simulationRuns = 10;
 
     auto start = chrono::high_resolution_clock::now();
 
-    for(int i = 0; i < simulationRuns; ++i){
+    for (int i = 0; i < simulationRuns; ++i) {
         int idx = dis(gen);
         cache.accessFile(filenames[idx]);
     }
@@ -101,8 +105,7 @@ int main(){
     auto end = chrono::high_resolution_clock::now();
     chrono::duration<double> elapsed = end - start;
 
-    // Display results
-    cache.displayCache();
+    // Display final results
     cache.displayMetrics();
     cout << "Simulation Time: " << elapsed.count() << " seconds\n";
 
