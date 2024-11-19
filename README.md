@@ -11,6 +11,7 @@ access.
 1. **Approach 1** : This approach uses a hybrid LRU-LFU replacement policy to modify the cache. Additionally, it verifies correct write-back operations for evicted dirty files.
 2. **Approach 2** : This method includes features like adaptive resizing, hybrid LRU-LFU eviction, write-back mechanism and performance metrics to analyse file access efficiency.
 3. **Approach 3** : 
+4. **Approach 4** : This approach used a clock'based eviction mechanism to manage cache entries using a circular pointer to traverse and evaluate cache entries for eviction.
 
 ## Project Structure
 - `approach/` : Folders that contain program and test files for implementing the cache optimization techniques
